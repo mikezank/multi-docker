@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t complex-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run complex-test npm test -- --coverage
+
+after_success:
+  - docker build -t mikezank/multi-client ./client
+  - docker build -t mikezank/multi-nginx ./nginx
+  - docker build -t mikezank/multi-server ./server
+  - docker build -t mikezank/multi-worker ./worker
+
+  - echo "$DOCKER_PW" | docker login -u "$DOCKER_ID" --password-stdin
+  - docker push mikezank/multi-client
+  - docker push mikezank/multi-nginx
+  - docker push mikezank/multi-server
+  - docker push mikezank/multi-worker
+
